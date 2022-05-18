@@ -90,8 +90,6 @@ window.squatch.ready(function(){
             lastName: lastNameInput.value,
             locale: 'en_US',
           },
-          engagementMedium: 'EMBED',
-          widgetType: 'REFERRER_WIDGET',
           jwt: jwtCreate()
         };
       
