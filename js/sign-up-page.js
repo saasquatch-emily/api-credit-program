@@ -1,4 +1,4 @@
-const jsonWebToken = require('jsonwebtoken')
+import { sign } from 'jsonwebtoken';
 
 // calling squatch.js when ready
 window.squatch.ready(function(){
@@ -31,7 +31,7 @@ window.squatch.ready(function(){
 
     let secret = 'secret'
 
-    let jwt = jsonWebToken.sign(payload, secret);
+    let jwt = sign(payload, secret);
 
 
         //autofill function to grab user's referral code cookie
