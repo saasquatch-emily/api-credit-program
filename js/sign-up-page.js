@@ -1,5 +1,3 @@
-import { sign } from 'jsonwebtoken';
-
 // calling squatch.js when ready
 window.squatch.ready(function(){
 
@@ -28,10 +26,17 @@ window.squatch.ready(function(){
       lastName: lastNameInput.value,
       locale: 'en_US',
     }
+    let jwtHeader = {
+      "alg": "HS256",
+      "typ": "JWT"
+    };
 
-    let secret = 'secret'
+    let secret = 'secret';
 
-    let jwt = sign(payload, secret);
+    let token = HMACSHA256(
+      base64UrlEncode(jwtHeader) + "." +
+      base64UrlEncode(payload),
+      secret)
 
 
         //autofill function to grab user's referral code cookie
@@ -53,7 +58,10 @@ window.squatch.ready(function(){
             firstName: firstNameInput.value,       
             lastName: lastNameInput.value,
             locale: 'en_US',
-          }
+          },
+          engagementMedium: 'EMBED',
+          widgetType: 'REFERRER_WIDGET',
+          jwt: token
         };
       
         squatch.api().upsertUser(initObj).then(function(response) {
@@ -67,7 +75,7 @@ window.squatch.ready(function(){
 //function to submit form and redirect to the thank you page
 function referralRedirect (event) {
     event.preventDefault();
-    window.location.href = "../thank-you.html";
+    window.location.href = "api-credit-program/thank-you.html";
 }
 
 
