@@ -11,6 +11,10 @@ window.squatch.ready(function(){
           tenantAlias: 'test_au94wd5r8zree'
         });
 
+        squatch.api().squatchReferralCookie().then(function(response) {
+          referralCodeInput.value = response.codes["classic"];
+        });
+
         //ids for referral form 
 
     
@@ -18,26 +22,53 @@ window.squatch.ready(function(){
     let lastNameInput = document.getElementById("lastNameInput");
     let emailInput = document.getElementById("emailInput");
 
-    let payload = {
-      id: emailInput.value,                      
-      accountId: emailInput.value,       
-      email: emailInput.value,                
-      firstName: firstNameInput.value,       
-      lastName: lastNameInput.value,
-      locale: 'en_US',
-    }
-    let jwtHeader = {
-      "alg": "HS256",
-      "typ": "JWT"
-    };
 
-    let secret = 'secret';
+        function jwtCreate() {
 
-    let token = HMACSHA256(
-      base64UrlEncode(jwtHeader) + "." +
-      base64UrlEncode(payload),
-      secret)
+          let jwtHeader = {
+            "alg": "HS256",
+            "typ": "JWT"
+          };
 
+          let payload = {
+            id: emailInput.value,                      
+            accountId: emailInput.value,       
+            email: emailInput.value,                
+            firstName: firstNameInput.value,       
+            lastName: lastNameInput.value,
+            locale: 'en_US',
+          };
+
+          let secret = 'secret';
+
+
+          function base64encrypt(source) {
+
+            //encode in classical base64
+            //encoding/signing function adapted from Alex's implementations.html
+            encodedSource = CryptoJS.enc.Base64.stringify(source);
+
+            encodedSource = encodedSource.replace(/=+$/, '');
+
+            encodedSource = encodedSource.replace(/\+/g, '-');
+            encodedSource = encodedSource.replace(/\//g, '_');
+
+            return encodedSource;
+          }
+
+          let headerString = CryptoJS.enc.Utf8.parse(JSON.stringify(jwtHeader));
+          let headerEncoded = base64encrypt(headerString);
+
+          let payloadString = CryptoJS.enc.Utf8.parse(JSON.stringify(payload));
+          let encodedPayload = base64encrypt(payloadString);
+
+          let signature = headerEncoded + "." + encodedPayload;
+          signature = CryptoJS.HmacSHA256(signature, secret);
+          signature = base64encrypt(signature);
+
+          let finalToken = headerEncoded + "." + encodedPayload + "." + signature;
+          return finalToken;
+        }
 
         //autofill function to grab user's referral code cookie
 
@@ -61,7 +92,7 @@ window.squatch.ready(function(){
           },
           engagementMedium: 'EMBED',
           widgetType: 'REFERRER_WIDGET',
-          jwt: token
+          jwt: jwtCreate()
         };
       
         squatch.api().upsertUser(initObj).then(function(response) {
@@ -84,5 +115,9 @@ function referralRedirect (event) {
 referralFormButton.addEventListener("click", referralRedirect);
 
 });
+
+
+
+
 
 
